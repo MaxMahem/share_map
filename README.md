@@ -15,14 +15,13 @@ Readers always see a consistent snapshot without blocking writers, and writers c
 
 ## Limitations
 
-- **No Borrows**: Values inside a `SwapMap` cannot be borrowed directly. This prevents direct iteration or direct `get` or `index` calls. Instead, to iterate, call `SwapMap::snapshot` and use the iterators provided by `FrozenMap`, or call `SwapMap::get` and
-use the returned `ValueRef` for reference access.
-- **Immutable Access Only**: No mutable access to values is exposed, directlyor indirectly. If you need mutability, use thread-safe constructs that provided interior mutability such as [`Mutex`](https://doc.rust-lang.org/std/sync/struct.Mutex.html), [`RwLock`](https://doc.rust-lang.org/std/sync/struct.RwLock.html), or [`Atomic*`](https://doc.rust-lang.org/std/sync/atomic/index.html).
-- **No Value Move Semantics** Values inside a `SwapMap` are ultimately owned by an [`Arc<[T]>`](https://doc.rust-lang.org/std/sync/struct.Arc.html), and cannot be moved out of without unsafe code. Thus to take ownership of held values, [`Clone`](https://doc.rust-lang.org/std/clone/trait.Clone.html) (or [`Copy`](https://doc.rust-lang.org/std/marker/trait.Copy.html)) is required.
+- **No Borrows**: Values inside a `SwapMap` cannot be borrowed directly. This prevents direct iteration or direct `get` or `index` calls. Instead, to iterate, call `SwapMap::snapshot` and use the iterators provided by `FrozenMap`, or call `SwapMap::get` and use the returned `ValueRef` for reference access.
+- **Immutable Access Only**: No mutable access to values is exposed, directly or indirectly. If you need mutability, use thread-safe constructs that provide interior mutability, such as [`Mutex`](https://doc.rust-lang.org/std/sync/struct.Mutex.html), [`RwLock`](https://doc.rust-lang.org/std/sync/struct.RwLock.html), or [`Atomic*`](https://doc.rust-lang.org/std/sync/atomic/index.html).
+- **No Value Move Semantics** Values inside a `SwapMap` are ultimately owned by an [`Arc<[T]>`](https://doc.rust-lang.org/std/sync/struct.Arc.html), and cannot be moved out of without unsafe code. Thus, to take ownership of held values, [`Clone`](https://doc.rust-lang.org/std/clone/trait.Clone.html) (or [`Copy`](https://doc.rust-lang.org/std/marker/trait.Copy.html)) is required.
 
 ## Map Dependent Behavior
 
-The map types used with `SwapMap` determines many aspects of how it operates — including which key types are valid, how lookups are performed, and the iteration order of entries.
+The map types used with `SwapMap` determine many aspects of how it operates — including which key types are valid, how lookups are performed, and the iteration order of entries.
 
 For example:
 - [`HashMap`](https://doc.rust-lang.org/std/collections/struct.HashMap.html) requires keys to implement [`Eq`](https://doc.rust-lang.org/std/cmp/trait.Eq.html) and [`Hash`](https://doc.rust-lang.org/std/hash/trait.Hash.html).
