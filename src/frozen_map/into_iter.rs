@@ -22,10 +22,19 @@ use crate::FrozenMap;
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct IntoIter<K, V, Iter: Iterator<Item = (K, usize)>> {
     index_iter: Iter,
     store: Arc<[V]>,
+}
+
+impl<K, V, Iter> std::fmt::Debug for IntoIter<K, V, Iter>
+where
+    Iter: Iterator<Item = (K, usize)>,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("IntoIter").finish_non_exhaustive()
+    }
 }
 
 impl<K, V, Iter: Iterator<Item = (K, usize)>> IntoIter<K, V, Iter> {

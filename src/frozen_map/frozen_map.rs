@@ -7,9 +7,9 @@ use frozen_collections::{Len, MapIteration, MapQuery};
 #[cfg(doc)]
 use crate::SwapMap;
 use crate::ValueRef;
-use crate::frozen_map::BorrowIter;
+use crate::frozen_map::Iter;
 
-/// An immutable snapshot of a map's contents that supports efficient, shared read access.
+/// An immutable snapshot of a map's contents that supports shared read access.
 ///
 /// This type is intentionally immutable: once a [FrozenMap] is created it never changes. That
 /// makes it safe to share across threads and to hand out lightweight handles into the snapshot
@@ -28,8 +28,8 @@ use crate::frozen_map::BorrowIter;
 /// Enumeration of values ('V') alone ([FrozenMap::values]) is always in order provided during
 /// construction.
 ///
-/// Any owned enumeration including values ([FrozenMap::into_iter]) requires that the values
-/// (`V`) be [Clone] and requires a cloneing of the values.
+/// Because ownership may be shared, any owned enumeration including values ([FrozenMap::into_iter])
+/// requires that the values (`V`) be [Clone] and requires a cloneing of the values during iteration.
 ///
 /// # Type Parameters
 /// - `K`: The key type stored in the map
@@ -93,15 +93,16 @@ impl<K, V, Map> FrozenMap<K, V, Map> {
         I: IntoIterator<Item = (K, V)>,
     {
         let iter = iter.into_iter();
-        let (lower, _) = iter.size_hint();
+        let (lower, upper) = iter.size_hint();
+        let size_guess = upper.unwrap_or(lower);
 
-        let mut store = Vec::with_capacity(lower);
-        let mut temp = Vec::with_capacity(lower);
+        let mut store = Vec::with_capacity(size_guess);
+        let mut temp = Vec::with_capacity(size_guess);
 
         for (key, value) in iter {
             let index = store.len();
             store.push(value);
-            temp.push((key.into(), index));
+            temp.push((key, index));
         }
 
         let index_map = Map::from_iter(temp);
@@ -213,11 +214,11 @@ impl<K, V, Map> FrozenMap<K, V, Map> {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn iter(&self) -> BorrowIter<'_, K, V, Map::Iterator<'_>>
+    pub fn iter(&self) -> Iter<'_, K, V, Map::Iterator<'_>>
     where
         Map: MapIteration<K, usize>,
     {
-        BorrowIter::new(self.index_map.iter(), &self.store)
+        Iter::new(self.index_map.iter(), &self.store)
     }
 
     /// Returns an iterator over the keys in the map.
@@ -250,7 +251,7 @@ impl<K, V, Map> FrozenMap<K, V, Map> {
     ///
     /// Unlike [HashMap::values], this method is `O(n:len)`, not `O(n:capacity)`.
     ///
-    /// Values are returned in the same order they were given.
+    /// Values are returned in the same order as the map was originallyconstructed with.
     ///
     /// # Example
     ///
@@ -301,7 +302,7 @@ impl<K, V, Map> FrozenMap<K, V, Map> {
 
     /// Consumes the [FrozenMap] and returns the value store.
     ///
-    /// Value in the store are in the same order they were given.
+    /// Values in the store are in the same order as the map was originallyconstructed with.
     ///
     /// # Example
     ///
@@ -382,10 +383,10 @@ where
     Map: MapIteration<K, usize>,
 {
     type Item = (&'a K, &'a V);
-    type IntoIter = BorrowIter<'a, K, V, Map::Iterator<'a>>;
+    type IntoIter = Iter<'a, K, V, Map::Iterator<'a>>;
 
     fn into_iter(self) -> Self::IntoIter {
-        BorrowIter::new(self.index_map.iter(), &self.store)
+        Iter::new(self.index_map.iter(), &self.store)
     }
 }
 

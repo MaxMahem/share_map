@@ -4,7 +4,6 @@ use std::ops::Deref;
 use std::sync::Arc;
 
 /// A reference to a value in a [SwapMap].
-#[derive(Debug)]
 pub struct ValueRef<V> {
     store: Arc<[V]>,
     index: usize,
@@ -17,11 +16,17 @@ impl<V> ValueRef<V> {
     }
 }
 
+impl<V: std::fmt::Debug> std::fmt::Debug for ValueRef<V> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Debug::fmt(&**self, f)
+    }
+}
+
 impl<V> Deref for ValueRef<V> {
     type Target = V;
 
     fn deref(&self) -> &Self::Target {
-        // SAFETY: `index` is guaranteed to be in bounds
-        unsafe { self.store.get_unchecked(self.index) }
+        // Panic safety: `index` is guaranteed to be in bounds
+        &self.store[self.index]
     }
 }

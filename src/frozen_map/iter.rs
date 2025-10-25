@@ -1,4 +1,4 @@
-use std::{iter::FusedIterator, sync::Arc};
+use std::iter::FusedIterator;
 
 /// A borrowed iterator over the key-value pairs in a [FrozenMap].
 ///
@@ -17,27 +17,36 @@ use std::{iter::FusedIterator, sync::Arc};
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Debug, Clone)]
-pub struct BorrowIter<'a, K: 'a, V, Iter>
+#[derive(Clone)]
+pub struct Iter<'a, K: 'a, V, I>
 where
-    Iter: Iterator<Item = (&'a K, &'a usize)>,
+    I: Iterator<Item = (&'a K, &'a usize)>,
 {
-    index_iter: Iter,
-    store: &'a Arc<[V]>,
+    index_iter: I,
+    store: &'a [V],
 }
 
-impl<'a, K, V, Iter> BorrowIter<'a, K, V, Iter>
+impl<'a, K, V, I> std::fmt::Debug for Iter<'a, K, V, I>
 where
-    Iter: Iterator<Item = (&'a K, &'a usize)>,
+    I: Iterator<Item = (&'a K, &'a usize)>,
 {
-    pub(crate) fn new(index_iter: Iter, store: &'a Arc<[V]>) -> Self {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Iter").finish_non_exhaustive()
+    }
+}
+
+impl<'a, K, V, I> Iter<'a, K, V, I>
+where
+    I: Iterator<Item = (&'a K, &'a usize)>,
+{
+    pub(crate) fn new(index_iter: I, store: &'a [V]) -> Self {
         Self { index_iter, store }
     }
 }
 
-impl<'a, K, V, Iter> Iterator for BorrowIter<'a, K, V, Iter>
+impl<'a, K, V, I> Iterator for Iter<'a, K, V, I>
 where
-    Iter: Iterator<Item = (&'a K, &'a usize)>,
+    I: Iterator<Item = (&'a K, &'a usize)>,
 {
     type Item = (&'a K, &'a V);
 
@@ -52,17 +61,17 @@ where
     }
 }
 
-impl<'a, K, V: Clone, Iter> ExactSizeIterator for BorrowIter<'a, K, V, Iter>
+impl<'a, K, V: Clone, I> ExactSizeIterator for Iter<'a, K, V, I>
 where
-    Iter: ExactSizeIterator<Item = (&'a K, &'a usize)>,
+    I: ExactSizeIterator<Item = (&'a K, &'a usize)>,
 {
     fn len(&self) -> usize {
         self.index_iter.len()
     }
 }
 
-impl<'a, K, V: Clone, Iter> FusedIterator for BorrowIter<'a, K, V, Iter> where
-    Iter: FusedIterator<Item = (&'a K, &'a usize)>
+impl<'a, K, V: Clone, I> FusedIterator for Iter<'a, K, V, I> where
+    I: FusedIterator<Item = (&'a K, &'a usize)>
 {
 }
 
