@@ -61,25 +61,6 @@ pub struct FrozenMap<K, V, Map = HashMap<K, usize>> {
     _marker: std::marker::PhantomData<K>,
 }
 
-impl<K, V, Map: Default> Default for FrozenMap<K, V, Map> {
-    fn default() -> Self {
-        Self {
-            index_map: Map::default(),
-            store: Arc::new([]),
-            _marker: std::marker::PhantomData,
-        }
-    }
-}
-
-impl<K: std::fmt::Debug, V: std::fmt::Debug, Map> std::fmt::Debug for FrozenMap<K, V, Map>
-where
-    Map: MapIteration<K, usize>,
-{
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_map().entries(self).finish()
-    }
-}
-
 /// An error indicating that a duplicate key was found in the provided data.
 #[derive(Debug, thiserror::Error, PartialEq, Eq)]
 #[error("Duplicate key found")]
@@ -135,7 +116,9 @@ impl<K, V, Map> FrozenMap<K, V, Map> {
     /// use swap_map::SwapMap;
     ///
     /// let snapshot = SwapMap::<&str, i32>::from_pairs([("key1", 42)])?.snapshot();
-    /// assert_eq!(snapshot.get("key1"), Some(&42));
+    /// let value: Option<&i32> = snapshot.get("key1");
+    ///
+    /// assert_eq!(value, Some(&42));
     /// # Ok(())
     /// # }
     /// ```
@@ -155,11 +138,11 @@ impl<K, V, Map> FrozenMap<K, V, Map> {
     ///
     /// ```rust
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use swap_map::SwapMap;
+    /// use swap_map::{SwapMap, ValueRef};
     ///
     /// let snapshot = SwapMap::<&str, i32>::from_pairs([("key1", 42)])?.snapshot();
     ///
-    /// let value_ref = snapshot.get_value_ref("key1").ok_or("Key not found")?;
+    /// let value_ref: ValueRef<i32> = snapshot.get_value_ref("key1").ok_or("Key not found")?;
     ///
     /// assert_eq!(*value_ref, 42);
     ///
@@ -211,7 +194,7 @@ impl<K, V, Map> FrozenMap<K, V, Map> {
     ///
     /// ```rust
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use assert_unordered::*;
+    /// # use assert_unordered::*;
     /// use swap_map::SwapMap;
     ///
     /// let snapshot = SwapMap::<i32, i32>::from_pairs([(15, 42), (32, 100)])?.snapshot();
@@ -237,7 +220,7 @@ impl<K, V, Map> FrozenMap<K, V, Map> {
     ///
     /// ```rust
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use assert_unordered::*;
+    /// # use assert_unordered::*;
     /// use swap_map::SwapMap;
     ///
     /// let snapshot = SwapMap::<&str, i32>::from_pairs([("key1", 42), ("key2", 100)])?.snapshot();
@@ -265,10 +248,10 @@ impl<K, V, Map> FrozenMap<K, V, Map> {
     ///
     /// ```rust
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # use assertables::*;
     /// use swap_map::SwapMap;
-    /// use assertables::*;
     ///
-    /// let snapshot = SwapMap::<&str, i32>::from_pairs([("key1", 42), ("key2", 100)])?.snapshot();
+    /// let snapshot = SwapMap::<_, _>::from_pairs([("key1", 42), ("key2", 100)])?.snapshot();
     ///
     /// let values: Vec<&i32> = snapshot.values().collect();
     ///
@@ -288,7 +271,7 @@ impl<K, V, Map> FrozenMap<K, V, Map> {
     ///
     /// ```rust
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// use assert_unordered::*;
+    /// # use assert_unordered::*;
     /// use swap_map::SwapMap;
     ///
     /// let snapshot = SwapMap::<&str, i32>::from_pairs([("key1", 42), ("key2", 100)])?
@@ -316,8 +299,8 @@ impl<K, V, Map> FrozenMap<K, V, Map> {
     ///
     /// ```rust
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
+    /// # use assertables::*;
     /// use std::sync::Arc;
-    /// use assertables::*;
     /// use swap_map::SwapMap;
     ///
     /// let snapshot = SwapMap::<&str, i32>::from_pairs([("key1", 42), ("key2", 100)])?
@@ -374,15 +357,22 @@ impl<K, V, Map> FrozenMap<K, V, Map> {
     }
 }
 
-impl<K, V: Clone, Map> IntoIterator for FrozenMap<K, V, Map>
+impl<K, V, Map: Default> Default for FrozenMap<K, V, Map> {
+    fn default() -> Self {
+        Self {
+            index_map: Map::default(),
+            store: Arc::new([]),
+            _marker: std::marker::PhantomData,
+        }
+    }
+}
+
+impl<K: std::fmt::Debug, V: std::fmt::Debug, Map> std::fmt::Debug for FrozenMap<K, V, Map>
 where
     Map: MapIteration<K, usize>,
 {
-    type Item = (K, V);
-    type IntoIter = crate::frozen_map::IntoIter<K, V, Map::IntoIter>;
-
-    fn into_iter(self) -> Self::IntoIter {
-        crate::frozen_map::IntoIter::new(self.index_map.into_iter(), self.store)
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_map().entries(self).finish()
     }
 }
 
@@ -411,27 +401,24 @@ where
 
 #[cfg(test)]
 mod tests {
-    use assert_unordered::assert_eq_unordered;
-    use assertables::*;
+    use std::collections::BTreeMap;
 
     use crate::FrozenMap;
-    use crate::UnitResultAny;
 
     #[test]
-    fn test_snapshot_map_from_pairs() -> UnitResultAny {
+    fn test_snapshot_map_from_pairs() {
         let snapshot_map_ok = FrozenMap::<&str, i32>::from_pairs([("key1", 42), ("key2", 100)]);
 
-        assert_ok!(snapshot_map_ok);
+        assert!(snapshot_map_ok.is_ok());
 
         // duplicate key's error
         let snapshot_map_err = FrozenMap::<&str, i32>::from_pairs([("key1", 42), ("key1", 100)]);
 
-        assert_err!(snapshot_map_err);
-        Ok(())
+        assert!(snapshot_map_err.is_err());
     }
 
     #[test]
-    fn test_map_snapshot_index() -> UnitResultAny {
+    fn test_map_snapshot_index() -> Result<(), Box<dyn std::error::Error>> {
         let snapshot = FrozenMap::<&str, i32>::from_pairs([("key1", 42)])?;
 
         assert_eq!(snapshot["key1"], 42);
@@ -447,24 +434,25 @@ mod tests {
         assert_eq!(snapshot["key2"], 0);
     }
 
+    // #[test]
+    // fn test_map_snapshot_into_iter_owned() -> UnitResultAny {
+    //     let snapshot = FrozenMap::<&str, i32>::from_pairs([("key1", 42), ("key2", 100)])?;
+
+    //     let pairs: Vec<(&str, i32)> = snapshot.into_iter().collect();
+
+    //     assert_eq_unordered!(pairs, vec![("key1", 42), ("key2", 100)]);
+
+    //     Ok(())
+    // }
+
     #[test]
-    fn test_map_snapshot_into_iter_owned() -> UnitResultAny {
-        let snapshot = FrozenMap::<&str, i32>::from_pairs([("key1", 42), ("key2", 100)])?;
+    fn test_map_into_iter_borrowed() -> Result<(), Box<dyn std::error::Error>> {
+        let vec = vec![("key1", 42), ("key2", 100)];
+        let frozen_map = FrozenMap::<&str, i32, BTreeMap<&str, usize>>::from_pairs(vec.clone())?;
 
-        let pairs: Vec<(&str, i32)> = snapshot.into_iter().collect();
+        let frozen_vec: Vec<(&&str, &i32)> = frozen_map.into_iter().collect();
 
-        assert_eq_unordered!(pairs, vec![("key1", 42), ("key2", 100)]);
-
-        Ok(())
-    }
-
-    #[test]
-    fn test_map_snapshot_into_iter_borrowed() -> UnitResultAny {
-        let snapshot = FrozenMap::<&str, i32>::from_pairs([("key1", 42), ("key2", 100)])?;
-
-        let pairs: Vec<(&&str, &i32)> = (&snapshot).into_iter().collect();
-
-        assert_eq_unordered!(pairs, vec![(&"key1", &42), (&"key2", &100)]);
+        assert_eq!(vec![(&"key1", &42), (&"key2", &100)], frozen_vec);
 
         Ok(())
     }

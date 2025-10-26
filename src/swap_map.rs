@@ -7,7 +7,7 @@ use frozen_collections::{Len, MapIteration, MapQuery};
 use tap::Pipe;
 
 use crate::frozen_map::{DuplicateKeyError, FrozenMap};
-use crate::{Hold, ValueRef};
+use crate::{Value, ValueRef};
 
 /// A thread-safe, lock-free frozen map that is immutable, but allows atomic swapping of the
 /// entire map contents.
@@ -70,8 +70,8 @@ use crate::{Hold, ValueRef};
 ///
 /// 1. [SwapMap::into_snapshot] — Returns the [FrozenMap] if no other snapshots exist; otherwise
 ///    returns [None].
-/// 2. [SwapMap::try_into_snapshot] — Returns a [Hold]: [Hold::Owned] if exclusive, or
-///    [Hold::Shared] with a wrapping [Arc].
+/// 2. [SwapMap::try_into_snapshot] — Returns a [Value]: [Value::Owned] if exclusive, or
+///    [Value::Shared] with a wrapping [Arc].
 /// 3. [SwapMap::into_snapshot_or_clone] — Returns the [FrozenMap] if exclusive, or a clone if
 ///    shared. Only available if `K`, `V`, and `Map` implement [Clone].
 ///
@@ -364,8 +364,8 @@ impl<K, V, Map> SwapMap<K, V, Map> {
     /// Converts the [SwapMap] into a [FrozenMap].
     ///
     /// # Returns
-    /// - [Hold::Owned] if there are no other snapshots
-    /// - [Hold::Shared] if there are other snapshots
+    /// - [Value::Owned] if there are no other snapshots
+    /// - [Value::Shared] if there are other snapshots
     ///
     /// # Examples
     ///
@@ -389,8 +389,8 @@ impl<K, V, Map> SwapMap<K, V, Map> {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn try_into_snapshot(self) -> Hold<FrozenMap<K, V, Map>> {
-        self.datastore.into_inner().pipe(Arc::try_unwrap).into()
+    pub fn try_into_snapshot(self) -> Value<FrozenMap<K, V, Map>> {
+        self.datastore.into_inner().into()
     }
 
     /// Converts the [SwapMap] into a [FrozenMap] if there are no other outstanding snapshots, clones
@@ -550,37 +550,34 @@ where
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
+    use std::collections::BTreeMap;
     use std::sync::Arc;
-
-    use assert_unordered::assert_eq_unordered;
 
     use crate::SwapMap;
     use crate::UnitResultAny;
 
     #[test]
-    fn test_swap_map_iteration_pattern() -> UnitResultAny {
-        let swap_map = SwapMap::<&str, i32>::from_pairs([("key1", 42), ("key2", 100)])?;
+    fn test_swap_map_iteration_pattern() {
+        let btree_map = BTreeMap::from([("key1", 42), ("key2", 100)]);
+        let swap_map: SwapMap<&str, i32, BTreeMap<&str, usize>> = btree_map.clone().into();
+        let snapshot = swap_map.snapshot();
 
-        let mut vec = Vec::<(&str, i32)>::new();
-        for (k, v) in swap_map.snapshot().iter() {
-            vec.push((k, *v));
-        }
+        let swap_vec: Vec<_> = snapshot.iter().collect();
+        let btree_vec: Vec<_> = btree_map.iter().collect();
 
-        assert_eq_unordered!(vec, vec![("key1", 42), ("key2", 100)]);
-
-        Ok(())
+        assert_eq!(swap_vec, btree_vec);
     }
 
+    /// Test against BTreeMap for reliability because HashMap does not guarantee iteration order
     #[test]
-    fn test_swap_map_debug_matches_hashmap() {
-        let normal_map = HashMap::from([("key", 42), ("key2", 100)]);
-        let swap_map = SwapMap::<&str, i32>::from_map(normal_map.clone());
+    fn test_swap_map_debug_matches_btreemap() {
+        let btree_map = BTreeMap::from([("key", 42), ("key2", 100)]);
+        let swap_map: SwapMap<&str, i32, BTreeMap<&str, usize>> = btree_map.clone().into();
 
-        let swap_debug_string = format!("{:?}", swap_map);
-        let normal_debug_string = format!("{:?}", normal_map);
+        let swap_debug = format!("{:?}", swap_map);
+        let btree_debug = format!("{:?}", btree_map);
 
-        assert_eq!(swap_debug_string, normal_debug_string);
+        assert_eq!(swap_debug, btree_debug);
     }
 
     #[test]

@@ -8,7 +8,7 @@ use std::iter::FusedIterator;
 ///
 /// ```rust
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// # use assert_unordered::*;
+/// use assert_unordered::*;
 /// use swap_map::SwapMap;
 ///
 /// let snapshot = SwapMap::<i32, i32>::from_pairs([(15, 42), (23, 100)])?.snapshot();
@@ -77,20 +77,21 @@ impl<'a, K, V: Clone, I> FusedIterator for Iter<'a, K, V, I> where
 
 #[cfg(test)]
 mod tests {
-    use assert_unordered::assert_eq_unordered;
+    use std::collections::BTreeMap;
 
     use crate::SwapMap;
     use crate::UnitResultAny;
 
     #[test]
-    fn test_borrow_iter() -> UnitResultAny {
-        let snapshot = SwapMap::<i32, i32>::from_pairs([(15, 42), (23, 100)])?.snapshot();
-        let iter = snapshot.iter();
+    fn test_borrow_iter() {
+        let btree_map = BTreeMap::from([("key1", 42), ("key2", 100)]);
+        let swap_map: SwapMap<&str, i32, BTreeMap<&str, usize>> = btree_map.clone().into();
+        let snapshot = swap_map.snapshot();
 
-        let pairs: Vec<(&i32, &i32)> = iter.collect();
+        let swap_vec: Vec<_> = snapshot.iter().collect();
+        let btree_vec: Vec<_> = btree_map.iter().collect();
 
-        assert_eq_unordered!(pairs, vec![(&15, &42), (&23, &100)]);
-        Ok(())
+        assert_eq!(swap_vec, btree_vec);
     }
 
     #[test]

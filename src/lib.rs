@@ -1,12 +1,12 @@
 #![doc = include_str!("../README.md")]
 mod frozen_map;
-mod hold;
 mod swap_map;
+mod value;
 mod value_ref;
 
-pub use frozen_map::{DuplicateKeyError, FrozenMap, IntoIter};
-pub use hold::Hold;
+pub use frozen_map::{DuplicateKeyError, FrozenMap};
 pub use swap_map::SwapMap;
+pub use value::Value;
 pub use value_ref::ValueRef;
 
 pub use frozen_collections::{Len, MapIteration, MapQuery};
