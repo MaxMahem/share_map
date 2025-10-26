@@ -54,11 +54,10 @@ use crate::frozen_map::Iter;
 /// # Ok(())
 /// # }
 /// ```
-#[derive(derive_more::Debug, Clone)]
+#[derive(Clone)]
 pub struct FrozenMap<K, V, Map = HashMap<K, usize>> {
     index_map: Map,
     store: Arc<[V]>,
-    #[debug(skip)]
     _marker: std::marker::PhantomData<K>,
 }
 
@@ -69,6 +68,15 @@ impl<K, V, Map: Default> Default for FrozenMap<K, V, Map> {
             store: Arc::new([]),
             _marker: std::marker::PhantomData,
         }
+    }
+}
+
+impl<K: std::fmt::Debug, V: std::fmt::Debug, Map> std::fmt::Debug for FrozenMap<K, V, Map>
+where
+    Map: MapIteration<K, usize>,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_map().entries(self).finish()
     }
 }
 

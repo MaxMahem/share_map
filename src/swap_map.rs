@@ -101,7 +101,7 @@ use crate::{Hold, ValueRef};
 /// # Ok(())
 /// # }
 /// ```
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct SwapMap<K, V, Map = HashMap<K, usize>> {
     datastore: ArcSwap<FrozenMap<K, V, Map>>,
 }
@@ -520,6 +520,14 @@ impl<K, V, Map> SwapMap<K, V, Map> {
     }
 }
 
+impl<K: std::fmt::Debug, V: std::fmt::Debug, Map: MapIteration<K, usize>> std::fmt::Debug
+    for SwapMap<K, V, Map>
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_map().entries(self.snapshot().iter()).finish()
+    }
+}
+
 impl<K, V, Map> From<HashMap<K, V>> for SwapMap<K, V, Map>
 where
     Map: FromIterator<(K, usize)> + Len,
@@ -542,6 +550,7 @@ where
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashMap;
     use std::sync::Arc;
 
     use assert_unordered::assert_eq_unordered;
@@ -561,6 +570,17 @@ mod tests {
         assert_eq_unordered!(vec, vec![("key1", 42), ("key2", 100)]);
 
         Ok(())
+    }
+
+    #[test]
+    fn test_swap_map_debug_matches_hashmap() {
+        let normal_map = HashMap::from([("key", 42), ("key2", 100)]);
+        let swap_map = SwapMap::<&str, i32>::from_map(normal_map.clone());
+
+        let swap_debug_string = format!("{:?}", swap_map);
+        let normal_debug_string = format!("{:?}", normal_map);
+
+        assert_eq!(swap_debug_string, normal_debug_string);
     }
 
     #[test]
