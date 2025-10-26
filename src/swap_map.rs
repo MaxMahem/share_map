@@ -2,15 +2,15 @@ use std::collections::{BTreeMap, HashMap};
 use std::sync::Arc;
 
 use arc_swap::ArcSwap;
-use fluent_result::{IntoResult, UnitResult};
+use fluent_result::IntoResult;
 use frozen_collections::{Len, MapIteration, MapQuery};
 use tap::Pipe;
 
 use crate::frozen_map::{DuplicateKeyError, FrozenMap};
 use crate::{Hold, ValueRef};
 
-/// A thread-safe, lock-free frozen map that is immutable, but also allows atomic swapping
-/// of the entire map contents.
+/// A thread-safe, lock-free frozen map that is immutable, but allows atomic swapping of the
+/// entire map contents.
 ///
 /// [SwapMap] provides a way to maintain a shared, immutable map that can be atomically
 /// replaced with a new version. Readers can access the current version without blocking
@@ -31,18 +31,20 @@ use crate::{Hold, ValueRef};
 /// but can use any type that implements [MapQuery], [Len], and [FromIterator].
 ///
 /// [SwapMap] depends upon the map implementation for most hash-map operations, including the
-/// constrains on the key type `K` (typically [Hash] + [Eq]), and what alternate types can be used
-/// to query keys in [SwapMap::get] and [SwapMap::contains_key] (for example, [HashMap] allow query
-/// for any type that implements [Borrow](std::borrow::Borrow) for the key type).
+/// constrains on the key type `K` (typically [Hash](std::hash::Hash) + [Eq]), and what alternate
+/// types can be used to query keys in [SwapMap::get] and [SwapMap::contains_key] (for example,
+/// [HashMap] allow query for any type that implements [Borrow](std::borrow::Borrow) for the key
+/// type).
 ///
-/// Note: The lookup map type is of `K` to [usize] internal indices.
+/// Note: the provided `Map` type must be from key (`K`) to internal value index (a `usize`)
+/// (i.e. `HashMap<K, usize>`), not key to value.
 ///
 /// # Retrieved [ValueRef]s
 ///
-/// [SwapMap::get] produces [ValueRef]s, which are that provide immutable access to values stored
-/// in a snapshot of the map. A [ValueRef] remains valid for the duration of its lifetime and
-/// continues to point into the snapshot it was created from — it will not reflect subsequent
-/// swaps of the map.
+/// [SwapMap::get] produces [ValueRef]s that provide immutable reference access to values stored in
+/// the map. A [ValueRef] is guranteed to remain valid for its lifetime and will always point into
+/// the map state it was created from — it will not invalidate when the map is swapped or reflect
+/// changes in the map due to the swap.
 ///
 /// No mutable access is provided to stored values. If values use interior mutability, callers
 /// must ensure those mutations are thread-safe. Such changes will be visible to all [ValueRef]s
@@ -55,10 +57,9 @@ use crate::{Hold, ValueRef};
 ///
 /// # Ownership
 ///
-/// [SwapMap] supports shared ownership of its data, such as when held in a static variable and
-/// accessed across different threads. Callers can invoke [SwapMap::snapshot] at any time to obtain
-/// a [FrozenMap], sharing access to the underlying data, and the [Arc] returned will *always*
-/// have shared ownership, until the [SwapMap] is dropped or its data is swapped.
+/// [SwapMap] is thread safe and provides shared ownership of its data. Callers can invoke
+/// [SwapMap::snapshot] at any time to obtain an [Arc] wrapped [FrozenMap], with the underlying
+/// data.
 ///
 /// Because ownership is shared in this way, acquiring exclusive ownership of a [FrozenMap] is
 /// nontrivial. Since [SwapMap] itself owns a reference, any operation that seeks exclusive
@@ -74,10 +75,9 @@ use crate::{Hold, ValueRef};
 /// 3. [SwapMap::into_snapshot_or_clone] — Returns the [FrozenMap] if exclusive, or a clone if
 ///    shared. Only available if `K`, `V`, and `Map` implement [Clone].
 ///
-/// In addition, the [Arc] returned by [SwapMap::swap] is not guranteed to have shared ownership,
-/// and so [Arc] associated functions can be used to try and unwrap it normally.
-///
-/// Note that [ValueRef]s created by [SwapMap::get] do *not* cause shared ownership in this way.
+/// In addition, the [Arc] wrapped [FrozenMap] returned by [SwapMap::swap] is not guranteed to have
+/// sole ownership, as previous snapshots may exists sharing ownership. However [ValueRef]s created
+/// by [SwapMap::get] do *not* cause shared ownership in this way.
 ///
 /// # Type Parameters
 ///
@@ -237,7 +237,7 @@ impl<K, V, Map> SwapMap<K, V, Map> {
     /// # Ok(())
     /// # }
     /// ```
-    pub fn store<I>(&self, iter: I) -> UnitResult<DuplicateKeyError>
+    pub fn store<I>(&self, iter: I) -> Result<(), DuplicateKeyError>
     where
         Map: FromIterator<(K, usize)> + Len,
         I: IntoIterator<Item = (K, V)>,
