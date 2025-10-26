@@ -1,7 +1,7 @@
+use std::fmt::Debug;
 use std::sync::Arc;
 use std::{collections::HashMap, ops::Index};
 
-use fluent_result::IntoResult;
 use frozen_collections::{Len, MapIteration, MapQuery};
 
 #[cfg(doc)]
@@ -61,11 +61,6 @@ pub struct FrozenMap<K, V, Map = HashMap<K, usize>> {
     _marker: std::marker::PhantomData<K>,
 }
 
-/// An error indicating that a duplicate key was found in the provided data.
-#[derive(Debug, thiserror::Error, PartialEq, Eq)]
-#[error("Duplicate key found")]
-pub struct DuplicateKeyError;
-
 impl<K, V, Map> FrozenMap<K, V, Map> {
     /// Creates a new [FrozenMap] from the provided key-value pairs.
     ///
@@ -76,7 +71,7 @@ impl<K, V, Map> FrozenMap<K, V, Map> {
     /// # Errors
     ///
     /// Fails with [DuplicateKeyError] if the provided data contains duplicate keys.
-    pub(crate) fn from_pairs<I>(iter: I) -> Result<Self, DuplicateKeyError>
+    pub(crate) fn from_pairs<I>(iter: I) -> Result<Self, Self>
     where
         Map: FromIterator<(K, usize)> + Len,
         I: IntoIterator<Item = (K, V)>,
@@ -94,16 +89,15 @@ impl<K, V, Map> FrozenMap<K, V, Map> {
             temp.push((key, index));
         }
 
-        let index_map = Map::from_iter(temp);
+        let map = Self {
+            index_map: Map::from_iter(temp),
+            store: store.into_boxed_slice().into(),
+            _marker: std::marker::PhantomData,
+        };
 
-        match index_map.len() == store.len() {
-            false => Err(DuplicateKeyError),
-            true => Self {
-                index_map,
-                store: store.into_boxed_slice().into(),
-                _marker: std::marker::PhantomData,
-            }
-            .into_ok(),
+        match map.index_map.len() == map.store.len() {
+            true => Ok(map),
+            false => Err(map),
         }
     }
 
@@ -367,7 +361,7 @@ impl<K, V, Map: Default> Default for FrozenMap<K, V, Map> {
     }
 }
 
-impl<K: std::fmt::Debug, V: std::fmt::Debug, Map> std::fmt::Debug for FrozenMap<K, V, Map>
+impl<K: Debug, V: Debug, Map> Debug for FrozenMap<K, V, Map>
 where
     Map: MapIteration<K, usize>,
 {
@@ -419,7 +413,7 @@ mod tests {
 
     #[test]
     fn test_map_snapshot_index() -> Result<(), Box<dyn std::error::Error>> {
-        let snapshot = FrozenMap::<&str, i32>::from_pairs([("key1", 42)])?;
+        let snapshot = FrozenMap::<&str, i32>::from_pairs([("key1", 42)]).unwrap();
 
         assert_eq!(snapshot["key1"], 42);
 
@@ -431,24 +425,14 @@ mod tests {
     fn test_map_snapshot_invalid_index() {
         let snapshot = FrozenMap::<&str, i32>::from_pairs([("key1", 42)]).unwrap();
 
-        assert_eq!(snapshot["key2"], 0);
+        _ = snapshot["key2"];
     }
-
-    // #[test]
-    // fn test_map_snapshot_into_iter_owned() -> UnitResultAny {
-    //     let snapshot = FrozenMap::<&str, i32>::from_pairs([("key1", 42), ("key2", 100)])?;
-
-    //     let pairs: Vec<(&str, i32)> = snapshot.into_iter().collect();
-
-    //     assert_eq_unordered!(pairs, vec![("key1", 42), ("key2", 100)]);
-
-    //     Ok(())
-    // }
 
     #[test]
     fn test_map_into_iter_borrowed() -> Result<(), Box<dyn std::error::Error>> {
         let vec = vec![("key1", 42), ("key2", 100)];
-        let frozen_map = FrozenMap::<&str, i32, BTreeMap<&str, usize>>::from_pairs(vec.clone())?;
+        let frozen_map =
+            FrozenMap::<&str, i32, BTreeMap<&str, usize>>::from_pairs(vec.clone()).unwrap();
 
         let frozen_vec: Vec<(&&str, &i32)> = frozen_map.into_iter().collect();
 

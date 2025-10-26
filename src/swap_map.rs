@@ -1,12 +1,13 @@
 use std::collections::{BTreeMap, HashMap};
+use std::fmt::{Debug, Formatter};
 use std::sync::Arc;
 
 use arc_swap::ArcSwap;
-use fluent_result::IntoResult;
+use fluent_result::{IntoResult, ResultMapTo};
 use frozen_collections::{Len, MapIteration, MapQuery};
 use tap::Pipe;
 
-use crate::frozen_map::{DuplicateKeyError, FrozenMap};
+use crate::frozen_map::FrozenMap;
 use crate::{Value, ValueRef};
 
 /// A thread-safe, lock-free frozen map that is immutable, but allows atomic swapping of the
@@ -103,8 +104,13 @@ use crate::{Value, ValueRef};
 /// ```
 #[derive(Default)]
 pub struct SwapMap<K, V, Map = HashMap<K, usize>> {
-    datastore: ArcSwap<FrozenMap<K, V, Map>>,
+    map: ArcSwap<FrozenMap<K, V, Map>>,
 }
+
+/// An error indicating that a duplicate key was found in the provided data.
+#[derive(Debug, thiserror::Error)]
+#[error("Duplicate key found")]
+pub struct DuplicateKeyError;
 
 impl<K, V, Map> SwapMap<K, V, Map> {
     /// Creates a new empty [SwapMap].
@@ -122,7 +128,7 @@ impl<K, V, Map> SwapMap<K, V, Map> {
         Map: Default,
     {
         Self {
-            datastore: ArcSwap::default(),
+            map: ArcSwap::default(),
         }
     }
 
@@ -148,7 +154,7 @@ impl<K, V, Map> SwapMap<K, V, Map> {
     ///
     /// // duplicate key's error
     /// let swap_map_err = SwapMap::<&str, i32>::from_pairs([("key1", 42), ("key1", 100)]);
-    /// assert_eq!(swap_map_err.unwrap_err(), DuplicateKeyError);
+    /// assert!(swap_map_err.is_err());
     /// # Ok(())
     /// # }
     /// ```
@@ -157,9 +163,10 @@ impl<K, V, Map> SwapMap<K, V, Map> {
         Map: FromIterator<(K, usize)> + Len,
         I: IntoIterator<Item = (K, V)>,
     {
-        FrozenMap::from_pairs(iter).map(|snapshot_map| Self {
-            datastore: ArcSwap::from_pointee(snapshot_map),
-        })
+        FrozenMap::from_pairs(iter)
+            .map(ArcSwap::from_pointee)
+            .map(|map| Self { map })
+            .map_err_to(DuplicateKeyError)
     }
 
     /// Creates a new [SwapMap] from the provided map.
@@ -232,8 +239,8 @@ impl<K, V, Map> SwapMap<K, V, Map> {
     /// assert_eq!(*value2, 21);
     ///
     /// // duplicate key's error
-    /// let err = swap_map.store([("key1", 42), ("key1", 100)]).unwrap_err();
-    /// assert_eq!(err, DuplicateKeyError);
+    /// let err = swap_map.store([("key1", 42), ("key1", 100)]);
+    /// assert!(err.is_err());
     /// # Ok(())
     /// # }
     /// ```
@@ -242,8 +249,11 @@ impl<K, V, Map> SwapMap<K, V, Map> {
         Map: FromIterator<(K, usize)> + Len,
         I: IntoIterator<Item = (K, V)>,
     {
-        let new = FrozenMap::from_pairs(iter).map(Arc::new)?;
-        self.datastore.store(new);
+        match FrozenMap::from_pairs(iter).map(Arc::new) {
+            Ok(arc_map) => self.map.store(arc_map),
+            Err(_) => return Err(DuplicateKeyError),
+        };
+
         Ok(())
     }
 
@@ -284,8 +294,8 @@ impl<K, V, Map> SwapMap<K, V, Map> {
     /// let value2: Option<&i32> = old_data.get("key1");
     /// assert_eq!(value2, Some(&42));
     ///
-    /// let err = swap_map.swap([("key1", 42), ("key1", 100)]).unwrap_err();
-    /// assert_eq!(err, DuplicateKeyError);
+    /// let err = swap_map.swap([("key1", 42), ("key1", 100)]);
+    /// assert!(err.is_err());
     /// # Ok(())
     /// # }
     /// ```
@@ -294,8 +304,10 @@ impl<K, V, Map> SwapMap<K, V, Map> {
         Map: FromIterator<(K, usize)> + Len,
         I: IntoIterator<Item = (K, V)>,
     {
-        let new = FrozenMap::from_pairs(iter).map(Arc::new)?;
-        self.datastore.swap(new).into_ok()
+        match FrozenMap::from_pairs(iter).map(Arc::new) {
+            Ok(arc_map) => self.map.swap(arc_map).into_ok(),
+            Err(_) => Err(DuplicateKeyError),
+        }
     }
 
     /// Retrieves a snapshot of the current map data.
@@ -326,7 +338,7 @@ impl<K, V, Map> SwapMap<K, V, Map> {
     /// # }
     /// ```
     pub fn snapshot(&self) -> Arc<FrozenMap<K, V, Map>> {
-        self.datastore.load().clone()
+        self.map.load().clone()
     }
 
     /// Converts the [SwapMap] into a [FrozenMap] if there are no other outstanding snapshots.
@@ -358,7 +370,7 @@ impl<K, V, Map> SwapMap<K, V, Map> {
     /// # }
     /// ```
     pub fn into_snapshot(self) -> Option<FrozenMap<K, V, Map>> {
-        self.datastore.into_inner().pipe(Arc::into_inner)
+        self.map.into_inner().pipe(Arc::into_inner)
     }
 
     /// Converts the [SwapMap] into a [FrozenMap].
@@ -390,7 +402,7 @@ impl<K, V, Map> SwapMap<K, V, Map> {
     /// # }
     /// ```
     pub fn try_into_snapshot(self) -> Value<FrozenMap<K, V, Map>> {
-        self.datastore.into_inner().into()
+        self.map.into_inner().into()
     }
 
     /// Converts the [SwapMap] into a [FrozenMap] if there are no other outstanding snapshots, clones
@@ -424,7 +436,7 @@ impl<K, V, Map> SwapMap<K, V, Map> {
         V: Clone,
         Map: Clone,
     {
-        self.datastore.into_inner().pipe(Arc::unwrap_or_clone)
+        self.map.into_inner().pipe(Arc::unwrap_or_clone)
     }
 
     /// Retrieves a reference to the value associated with the given key.
@@ -456,7 +468,7 @@ impl<K, V, Map> SwapMap<K, V, Map> {
     where
         Map: MapQuery<Q, usize>,
     {
-        self.datastore.load().get_value_ref(key)
+        self.map.load().get_value_ref(key)
     }
 
     /// Checks if the map contains a specific key.
@@ -479,7 +491,7 @@ impl<K, V, Map> SwapMap<K, V, Map> {
     where
         Map: MapQuery<Q, usize>,
     {
-        self.datastore.load().contains_key(key)
+        self.map.load().contains_key(key)
     }
 
     /// Returns the number of key-value pairs in the current map.
@@ -496,7 +508,7 @@ impl<K, V, Map> SwapMap<K, V, Map> {
     /// # }
     /// ```
     pub fn len(&self) -> usize {
-        self.datastore.load().len()
+        self.map.load().len()
     }
 
     /// Checks if the map is empty.
@@ -516,14 +528,12 @@ impl<K, V, Map> SwapMap<K, V, Map> {
     /// # }
     /// ```
     pub fn is_empty(&self) -> bool {
-        self.datastore.load().is_empty()
+        self.map.load().is_empty()
     }
 }
 
-impl<K: std::fmt::Debug, V: std::fmt::Debug, Map: MapIteration<K, usize>> std::fmt::Debug
-    for SwapMap<K, V, Map>
-{
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl<K: Debug, V: Debug, Map: MapIteration<K, usize>> Debug for SwapMap<K, V, Map> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
         f.debug_map().entries(self.snapshot().iter()).finish()
     }
 }
@@ -533,8 +543,7 @@ where
     Map: FromIterator<(K, usize)> + Len,
 {
     fn from(map: HashMap<K, V>) -> Self {
-        // SAFETY: HashMap should ensure that there are no duplicates
-        unsafe { Self::from_pairs(map).unwrap_unchecked() }
+        Self::from_pairs(map).expect("HashMap should ensure no duplicate values")
     }
 }
 
@@ -543,8 +552,17 @@ where
     Map: FromIterator<(K, usize)> + Len,
 {
     fn from(map: BTreeMap<K, V>) -> Self {
+        Self::from_pairs(map).expect("BTreeMap should ensure no duplicate values")
+    }
+}
+
+impl<K, V, Map> FromIterator<(K, V)> for SwapMap<K, V, Map>
+where
+    Map: FromIterator<(K, usize)> + Len,
+{
+    fn from_iter<T: IntoIterator<Item = (K, V)>>(iter: T) -> Self {
         // SAFETY: HashMap should ensure that there are no duplicates
-        unsafe { Self::from_pairs(map).unwrap_unchecked() }
+        unsafe { Self::from_pairs(iter).unwrap_unchecked() }
     }
 }
 

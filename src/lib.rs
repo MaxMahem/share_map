@@ -4,8 +4,8 @@ mod swap_map;
 mod value;
 mod value_ref;
 
-pub use frozen_map::{DuplicateKeyError, FrozenMap};
-pub use swap_map::SwapMap;
+pub use frozen_map::FrozenMap;
+pub use swap_map::{DuplicateKeyError, SwapMap};
 pub use value::Value;
 pub use value_ref::ValueRef;
 
