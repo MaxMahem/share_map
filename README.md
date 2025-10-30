@@ -20,11 +20,11 @@ It is designed for scenarios with **frequent reads** and **occasional bulk updat
 ## Limitations
 
 - **Immutable Access Only**: No mutable access to values is exposed, directly or indirectly. If you need mutability, use thread-safe constructs that provide interior mutability, such as [`Mutex`](https://doc.rust-lang.org/std/sync/struct.Mutex.html), [`RwLock`](https://doc.rust-lang.org/std/sync/struct.RwLock.html), or [`Atomic*`](https://doc.rust-lang.org/std/sync/atomic/index.html).
-- **No Value Move Semantics** Values inside a `ShareMap` are ultimately owned by an [`Arc<[T]>`](https://doc.rust-lang.org/std/sync/struct.Arc.html), and cannot be moved out of without unsafe code. Thus, to take ownership of held values, [`Clone`](https://doc.rust-lang.org/std/clone/trait.Clone.html) (or [`Copy`](https://doc.rust-lang.org/std/marker/trait.Copy.html)) is required.
+- **No Value Move Semantics** Values inside a `ShareMap` are ultimately owned by an [`Arc<[T]>`](https://doc.rust-lang.org/std/sync/struct.Arc.html), and cannot be moved out of without unsafe code. Thus, to take ownership of held values, [`Clone`](https://doc.rust-lang.org/std/clone/trait.Clone.html) or [`Copy`](https://doc.rust-lang.org/std/marker/trait.Copy.html) is required.
 
 ## Map Dependent Behavior
 
-The map types used with `ShareMap` determine many aspects of how it operates — including which key types are valid, how lookups are performed, and the iteration order of entries.
+The map types used with `ShareMap` determine many aspects of its operation — including which key types are valid, how lookups are performed, and the iteration order of entries.
 
 For example:
 - [`HashMap`](https://doc.rust-lang.org/std/collections/struct.HashMap.html) requires keys to implement [`Eq`](https://doc.rust-lang.org/std/cmp/trait.Eq.html) and [`Hash`](https://doc.rust-lang.org/std/hash/trait.Hash.html).
