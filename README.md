@@ -11,22 +11,21 @@ It is designed for scenarios with **frequent reads** and **occasional bulk updat
 
 ## Features
 
-- **Immutable design** — once created, data cannot be mutated.
-- **Stable handles** — each entry can be accessed through a persistent `Handle<T>` which can outlive the map.
-- **Iterator support** — borrow-based iterators allow efficient traversal.
+- **Immutable design** - once created, data cannot be mutated.
+- **Stable handles** - each entry can be accessed through a persistent `Handle<T>` which can outlive the map.
 - **Customizable Map Implementation**: By default `SharedMap` uses [`HashMap`](https://doc.rust-lang.org/std/collections/struct.HashMap.html) for its key lookups. But you can plug in [`BTreeMap`](https://doc.rust-lang.org/std/collections/struct.BTreeMap.html), any of the maps from [`frozen_collections`](https://docs.rs/frozen-collections/latest/frozen_collections/), [`hashbrown::HashMap`](https://docs.rs/hashbrown/latest/hashbrown/), or any type implementing [`MapQuery`](https://docs.rs/frozen_collections/latest/frozen_collections/trait.MapQuery.html), [`Len`](https://docs.rs/frozen_collections/latest/frozen_collections/trait.Len.html), and [`FromIterator`](https://doc.rust-lang.org/std/iter/trait.FromIterator.html).
-- **Failure-aware construction** — integrates with `TryFromIterator` for fallible initialization.
+- **Failure-aware construction** - integrates with [`CollectFailable`](https://github.com/MaxMahem/collect_failable) for fallible construction.
+- **Serde Support** - Supports deserialization and serialization with optional guarding against duplicate keys via `ensure_unique`. Gated behind crate feature `Serde`
 
 ## Limitations
 
 - **Immutable Access Only**: No mutable access to values is exposed, directly or indirectly. If you need mutability, use thread-safe constructs that provide interior mutability, such as [`Mutex`](https://doc.rust-lang.org/std/sync/struct.Mutex.html), [`RwLock`](https://doc.rust-lang.org/std/sync/struct.RwLock.html), or [`Atomic*`](https://doc.rust-lang.org/std/sync/atomic/index.html).
-- **No Value Move Semantics** Values inside a `ShareMap` are ultimately owned by an [`Arc<[T]>`](https://doc.rust-lang.org/std/sync/struct.Arc.html), and cannot be moved out of without unsafe code. Thus, to take ownership of held values, [`Clone`](https://doc.rust-lang.org/std/clone/trait.Clone.html) or [`Copy`](https://doc.rust-lang.org/std/marker/trait.Copy.html) is required.
+- **No Value Move Semantics**: Values inside a `ShareMap` are ultimately owned by an [`Arc<[T]>`](https://doc.rust-lang.org/std/sync/struct.Arc.html), and cannot be moved out of without unsafe code. Thus, to take ownership of held values, [`Clone`](https://doc.rust-lang.org/std/clone/trait.Clone.html) or [`Copy`](https://doc.rust-lang.org/std/marker/trait.Copy.html) is required.
 
 ## Map Dependent Behavior
 
 The map types used with `ShareMap` determine many aspects of its operation — including which key types are valid, how lookups are performed, and the iteration order of entries.
 
-For example:
 - [`HashMap`](https://doc.rust-lang.org/std/collections/struct.HashMap.html) requires keys to implement [`Eq`](https://doc.rust-lang.org/std/cmp/trait.Eq.html) and [`Hash`](https://doc.rust-lang.org/std/hash/trait.Hash.html).
 - [`BTreeMap`](https://doc.rust-lang.org/std/collections/struct.BTreeMap.html) requires keys to also implement [`Ord`](https://doc.rust-lang.org/std/cmp/trait.Ord.html).
 - [`HashMap`](https://doc.rust-lang.org/std/collections/struct.HashMap.html) supports querying with any key type that implements [`Borrow<K>`](https://doc.rust-lang.org/std/borrow/trait.Borrow.html).
