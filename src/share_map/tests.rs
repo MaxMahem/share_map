@@ -275,3 +275,32 @@ fn serde_roundtrip() {
 
     assert_eq!(map, deserialized);
 }
+
+use crate::ensure_unqiue;
+
+#[derive(Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+struct TestContainer {
+    #[serde(with = "ensure_unqiue")]
+    map: ShareMap<String, u8>,
+}
+
+#[test]
+fn deserialize_ensure_unqiue_duplicate_keys_errors() {
+    let data = r#"{"map": {"key1": 1, "key2": 2, "key1": 3}}"#;
+
+    let err = serde_json::from_str::<TestContainer>(data).expect_err("should Err");
+
+    assert!(err.is_data());
+}
+
+#[test]
+fn serde_ensured_unique_roundtrip() {
+    let test_data = TEST_DATA.into_iter().map(|(k, v)| (k.to_string(), v));
+    let map = ShareMap::<String, _>::try_from_iter(test_data).expect("should be ok");
+    let test_container = TestContainer { map };
+
+    let serialized = serde_json::to_string(&test_container).expect("should be ok");
+    let deserialized: TestContainer = serde_json::from_str(&serialized).expect("should be ok");
+
+    assert_eq!(test_container, deserialized);
+}

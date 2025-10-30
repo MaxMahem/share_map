@@ -623,33 +623,3 @@ where
         ShareMap::try_from_iter(iterable)
     }
 }
-
-#[cfg(feature = "serde")]
-impl<'de, K, V, Map> serde::Deserialize<'de> for ShareMap<K, V, Map>
-where
-    K: Eq + std::hash::Hash + serde::Deserialize<'de>,
-    V: serde::Deserialize<'de>,
-    Map: FromIterator<(K, usize)> + Len,
-{
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        HashMap::deserialize(deserializer).map(ShareMap::from)
-    }
-}
-
-#[cfg(feature = "serde")]
-impl<K, V, Map> serde::Serialize for ShareMap<K, V, Map>
-where
-    K: serde::Serialize,
-    V: serde::Serialize,
-    Map: MapIteration<K, usize>,
-{
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        serializer.collect_map(self)
-    }
-}
