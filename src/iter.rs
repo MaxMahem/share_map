@@ -11,7 +11,6 @@ use crate::ShareMap;
 ///
 /// ```rust
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// # use assert_unordered::*;
 /// use std::collections::BTreeMap;
 /// use share_map::ShareMap;
 ///

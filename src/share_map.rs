@@ -202,14 +202,17 @@ impl<K, V, Map> ShareMap<K, V, Map> {
     ///
     /// ```rust
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// # use assert_unordered::*;
+    /// use std::collections::BTreeMap;
     /// use share_map::ShareMap;
     ///
-    /// let map = ShareMap::<i32, i32>::try_from_iter([(15, 42), (32, 100)])?;
+    /// // BTreeMap gurantees iteration order
+    /// let data = [("key1", 42), ("key2", 100)];
+    /// let map = ShareMap::<_, _, BTreeMap<_, _>>::try_from_iter(data)?;
     ///
-    /// let mut pairs: Vec<(&i32, &i32)> = map.iter().collect();
+    /// let map_keys: Vec<_> = map.iter().collect();
+    /// let data_keys: Vec<_> = data.iter().map(|(k, v)| (k, v)).collect();
     ///
-    /// assert_eq_unordered!(pairs, vec![(&15, &42), (&32, &100)]);
+    /// assert_eq!(map_keys, data_keys);
     /// # Ok(())
     /// # }
     /// ```
@@ -228,14 +231,17 @@ impl<K, V, Map> ShareMap<K, V, Map> {
     ///
     /// ```rust
     /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-    /// # use assert_unordered::*;
+    /// use std::collections::BTreeMap;
     /// use share_map::ShareMap;
     ///
-    /// let map = ShareMap::<&str, i32>::try_from_iter([("key1", 42), ("key2", 100)])?;
+    /// // BTreeMap gurantees iteration order
+    /// let data = [("key1", 42), ("key2", 100)];
+    /// let map = ShareMap::<_, _, BTreeMap<_, _>>::try_from_iter(data)?;
     ///
-    /// let keys: Vec<&&str> = map.keys().collect();
+    /// let map_keys: Vec<_> = map.keys().collect();
+    /// let data_keys: Vec<_> = data.iter().map(|(k, _)| k).collect();
     ///
-    /// assert_eq_unordered!(keys, vec![&"key1", &"key2"]);
+    /// assert_eq!(map_keys, data_keys);
     /// # Ok(())
     /// # }
     /// ```

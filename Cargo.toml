@@ -16,7 +16,6 @@ authors = ["Austin Stanley <MaxTMahem@gmail.com>"]
 serde = ["dep:serde"]
 
 [dependencies]
-arc-swap = "1.7.1"
 frozen-collections = "0.8.0"
 tap = "1.0.1"
 fluent_result = { git = "https://github.com/MaxMahem/fluent_result.git" }
@@ -25,6 +24,4 @@ thiserror = "2.0.17"
 serde = { version = "1.0.228", optional = true }
 
 [dev-dependencies]
-assert_unordered = "0.3.5"
-assertables = "9.8.2"
 serde_json = "1.0.145"
