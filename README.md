@@ -3,7 +3,7 @@
 [![CI](https://github.com/MaxMahem/share_map/workflows/CI/badge.svg)](https://github.com/MaxMahem/share_map/actions)
 ![GitHub License](https://img.shields.io/github/license/maxmahem/share_map)
 [![dependency status](https://deps.rs/repo/github/maxmahem/share_map/status.svg)](https://deps.rs/repo/github/maxmahem/share_map)
-[![codecov](https://codecov.io/github/MaxMahem/share_map/graph/badge.svg?token=I0HHWBYHBO)](https://codecov.io/github/MaxMahem/share_map)
+[![codecov](https://codecov.io/github/MaxMahem/share_map/graph/badge.svg?token=N5JJLLQ04L)](https://codecov.io/github/MaxMahem/share_map)
 
 `ShareMap` is a **configurable, thread-safe, immutable map** of values that supports shared read access and provides access to stable, sharable value references to its owned values ([`Handle`]s).
 
