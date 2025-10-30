@@ -1,6 +1,9 @@
 use std::iter::FusedIterator;
 
-/// A borrowed iterator over the key-value pairs in a [FrozenMap].
+#[cfg(doc)]
+use crate::ShareMap;
+
+/// A borrowed iterator over the key-value pairs in a [ShareMap].
 ///
 /// Order of iteration is dependent on the underlying map implementation.
 ///
@@ -8,12 +11,19 @@ use std::iter::FusedIterator;
 ///
 /// ```rust
 /// # fn main() -> Result<(), Box<dyn std::error::Error>> {
-/// use assert_unordered::*;
-/// use swap_map::SwapMap;
+/// # use assert_unordered::*;
+/// use std::collections::BTreeMap;
+/// use share_map::ShareMap;
 ///
-/// let snapshot = SwapMap::<i32, i32>::from_pairs([(15, 42), (23, 100)])?.snapshot();
-/// let pairs: Vec<(&i32, &i32)> = snapshot.iter().collect();
-/// assert_eq_unordered!(pairs, vec![(&15, &42), (&23, &100)]);
+/// // BTreeMap gurantees iteration order
+/// let data_pairs = [(15, 42), (23, 100)];
+/// let share_map = ShareMap::<_, _, BTreeMap<_, _>>::try_from_iter(data_pairs.clone())?;
+/// let btree_map = BTreeMap::from(data_pairs.clone());
+///
+/// let share_pairs: Vec<_> = share_map.iter().collect();
+/// let btree_pairs: Vec<_> = btree_map.iter().collect();
+///
+/// assert_eq!(share_pairs, btree_pairs);
 /// # Ok(())
 /// # }
 /// ```
@@ -79,25 +89,33 @@ impl<'a, K, V: Clone, I> FusedIterator for Iter<'a, K, V, I> where
 mod tests {
     use std::collections::BTreeMap;
 
-    use crate::SwapMap;
-    use crate::UnitResultAny;
+    use crate::ShareMap;
 
     #[test]
-    fn test_borrow_iter() {
-        let btree_map = BTreeMap::from([("key1", 42), ("key2", 100)]);
-        let swap_map: SwapMap<&str, i32, BTreeMap<&str, usize>> = btree_map.clone().into();
-        let snapshot = swap_map.snapshot();
+    fn debug_is_expected() {
+        let map = ShareMap::<_, _>::try_from_iter([(15, 42), (23, 100)]).expect("should be ok");
+        let iter = map.iter();
 
-        let swap_vec: Vec<_> = snapshot.iter().collect();
+        let debug = format!("{:?}", iter);
+
+        assert_eq!(debug, "Iter { .. }");
+    }
+
+    #[test]
+    fn borrow_iter_matches_btreemap() {
+        let btree_map = BTreeMap::from([("key1", 42), ("key2", 100)]);
+        let map: ShareMap<_, _, BTreeMap<_, _>> = btree_map.clone().into();
+
+        let swap_vec: Vec<_> = map.iter().collect();
         let btree_vec: Vec<_> = btree_map.iter().collect();
 
         assert_eq!(swap_vec, btree_vec);
     }
 
     #[test]
-    fn test_borrow_iter_size_hint_len_fused_trait() -> UnitResultAny {
-        let snapshot = SwapMap::<i32, i32>::from_pairs([(15, 42), (23, 100)])?.snapshot();
-        let mut iter = snapshot.iter();
+    fn borrow_iter_size_hint_len_fused_trait_are_correct() {
+        let map = ShareMap::<_, _>::try_from_iter([(15, 42), (23, 100)]).expect("should be ok");
+        let mut iter = map.iter();
 
         for len in (1..=2).rev() {
             assert_eq!(iter.len(), len);
@@ -108,7 +126,5 @@ mod tests {
 
         assert_eq!(iter.next(), None);
         assert_eq!(iter.next(), None); // FusedIterator guarantees this remains None
-
-        Ok(())
     }
 }

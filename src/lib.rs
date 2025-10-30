@@ -1,15 +1,13 @@
 #![doc = include_str!("../README.md")]
-mod frozen_map;
-mod swap_map;
-mod value;
-mod value_ref;
+mod handle;
+mod iter;
+mod share_map;
 
-pub use frozen_map::FrozenMap;
-pub use swap_map::{DuplicateKeyError, SwapMap};
-pub use value::Value;
-pub use value_ref::ValueRef;
+pub use handle::Handle;
+pub use iter::Iter;
+pub use share_map::{DuplicateKeyError, ShareMap};
 
 pub use frozen_collections::{Len, MapIteration, MapQuery};
 
 #[cfg(test)]
-pub(crate) type UnitResultAny = Result<(), Box<dyn std::error::Error>>;
+mod tests;
