@@ -63,6 +63,8 @@ where
 /// # }
 /// ```
 pub mod ensure_unqiue {
+    use std::{hash::Hash, marker::PhantomData};
+
     use serde::Serialize;
     use tap::Pipe;
 
@@ -80,7 +82,7 @@ pub mod ensure_unqiue {
         value.serialize(serializer)
     }
 
-    /// Deserializes the map.
+    /// Deserializes the data into a [`ShareMap`].
     ///
     /// # Errors
     ///
@@ -88,28 +90,19 @@ pub mod ensure_unqiue {
     pub fn deserialize<'de, D, K, V, Map>(deserializer: D) -> Result<ShareMap<K, V, Map>, D::Error>
     where
         D: serde::Deserializer<'de>,
-        K: Eq + std::hash::Hash + serde::Deserialize<'de>,
+        K: Eq + Hash + serde::Deserialize<'de>,
         V: serde::Deserialize<'de>,
         Map: FromIterator<(K, usize)> + Len,
     {
-        deserializer.deserialize_map(ShareMapVisitor::new())
+        deserializer.deserialize_map(ShareMapVisitor(PhantomData))
     }
 
-    struct ShareMapVisitor<K, V, Map> {
-        marker: std::marker::PhantomData<ShareMap<K, V, Map>>,
-    }
-
-    impl<K, V, Map> ShareMapVisitor<K, V, Map> {
-        fn new() -> Self {
-            ShareMapVisitor {
-                marker: std::marker::PhantomData,
-            }
-        }
-    }
+    #[derive(Debug)]
+    struct ShareMapVisitor<K, V, Map>(PhantomData<ShareMap<K, V, Map>>);
 
     impl<'de, K, V, Map> serde::de::Visitor<'de> for ShareMapVisitor<K, V, Map>
     where
-        K: Eq + std::hash::Hash + serde::Deserialize<'de>,
+        K: Eq + Hash + serde::Deserialize<'de>,
         V: serde::Deserialize<'de>,
         Map: FromIterator<(K, usize)> + Len,
     {

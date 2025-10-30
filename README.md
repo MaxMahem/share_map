@@ -9,13 +9,13 @@
 
 It is designed for scenarios with **frequent reads** and **occasional bulk updates**, such as configuration reloading, caching, or periodically rebuilt lookup tables. Where data needs to be queried on one thread while values are handled on another. `Handle`s provide persistent access to owned data, so the `ShareMap` can be dropped or replaced without affecting current readers who will continue to see the previous value.
 
-## ✨ Features
+## Features
 
-- 🔒 **Immutable design** — once created, data cannot be mutated.
-- 🔗 **Stable handles** — each entry can be accessed through a persistent `Handle<T>` which can outlive the map.
-- ⚡ **Iterator support** — borrow-based iterators allow efficient traversal.
-- 🧠 **Customizable Map Implementation**: By default `SharedMap` uses [`HashMap`](https://doc.rust-lang.org/std/collections/struct.HashMap.html) for its key lookups. But you can plug in [`BTreeMap`](https://doc.rust-lang.org/std/collections/struct.BTreeMap.html), any of the maps from [`frozen_collections`](https://docs.rs/frozen-collections/latest/frozen_collections/), [`hashbrown::HashMap`](https://docs.rs/hashbrown/latest/hashbrown/), or any type implementing [`MapQuery`](https://docs.rs/frozen_collections/latest/frozen_collections/trait.MapQuery.html), [`Len`](https://docs.rs/frozen_collections/latest/frozen_collections/trait.Len.html), and [`FromIterator`](https://doc.rust-lang.org/std/iter/trait.FromIterator.html).
-- ❌ **Failure-aware construction** — integrates with `TryFromIterator` for fallible initialization.
+- **Immutable design** — once created, data cannot be mutated.
+- **Stable handles** — each entry can be accessed through a persistent `Handle<T>` which can outlive the map.
+- **Iterator support** — borrow-based iterators allow efficient traversal.
+- **Customizable Map Implementation**: By default `SharedMap` uses [`HashMap`](https://doc.rust-lang.org/std/collections/struct.HashMap.html) for its key lookups. But you can plug in [`BTreeMap`](https://doc.rust-lang.org/std/collections/struct.BTreeMap.html), any of the maps from [`frozen_collections`](https://docs.rs/frozen-collections/latest/frozen_collections/), [`hashbrown::HashMap`](https://docs.rs/hashbrown/latest/hashbrown/), or any type implementing [`MapQuery`](https://docs.rs/frozen_collections/latest/frozen_collections/trait.MapQuery.html), [`Len`](https://docs.rs/frozen_collections/latest/frozen_collections/trait.Len.html), and [`FromIterator`](https://doc.rust-lang.org/std/iter/trait.FromIterator.html).
+- **Failure-aware construction** — integrates with `TryFromIterator` for fallible initialization.
 
 ## Limitations
 

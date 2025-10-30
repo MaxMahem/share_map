@@ -5,7 +5,9 @@ use std::hash::{Hash, Hasher};
 use std::ops::Deref;
 use std::sync::Arc;
 
-/// A reference to a shared value.
+/// An immutable reference to a shared value.
+///
+/// Implements most common traits via deref to the referenced value and can be cheaply cloned.
 #[derive(Clone)]
 pub struct Handle<T> {
     store: Arc<[T]>,
@@ -114,15 +116,13 @@ impl<T> Handle<T> {
 
 impl<T> AsRef<T> for Handle<T> {
     fn as_ref(&self) -> &T {
-        // Panic safety: `index` is guaranteed to be in bounds
-        &self.store[self.index]
+        self
     }
 }
 
 impl<T> Borrow<T> for Handle<T> {
     fn borrow(&self) -> &T {
-        // Panic safety: `index` is guaranteed to be in bounds
-        &self.store[self.index]
+        self
     }
 }
 
