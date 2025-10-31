@@ -1,6 +1,7 @@
 # ShareMap
 
-[![CI](https://github.com/MaxMahem/share_map/workflows/CI/badge.svg)](https://github.com/MaxMahem/share_map/actions)
+[![Build](https://github.com/MaxMahem/share_map/actions/workflows/ci.yml/badge.svg)](https://github.com/MaxMahem/share_map/actions/workflows/ci.yml)
+[![Docs](https://github.com/MaxMahem/share_map/actions/workflows/docs.yml/badge.svg)](https://maxmahem.github.io/share_map/share_map/index.html)
 ![GitHub License](https://img.shields.io/github/license/maxmahem/share_map)
 [![dependency status](https://deps.rs/repo/github/maxmahem/share_map/status.svg)](https://deps.rs/repo/github/maxmahem/share_map)
 [![codecov](https://codecov.io/github/MaxMahem/share_map/graph/badge.svg?token=N5JJLLQ04L)](https://codecov.io/github/MaxMahem/share_map)
