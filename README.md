@@ -1,6 +1,6 @@
 # ShareMap
 
-[![Build](https://github.com/MaxMahem/share_map/actions/workflows/ci.yml/badge.svg)](https://github.com/MaxMahem/share_map/actions/workflows/ci.yml)
+[![Build](https://github.com/MaxMahem/share_map/actions/workflows/build.yml/badge.svg)](https://github.com/MaxMahem/share_map/actions/workflows/build.yml)
 [![Docs](https://github.com/MaxMahem/share_map/actions/workflows/docs.yml/badge.svg)](https://maxmahem.github.io/share_map/share_map/index.html)
 ![GitHub License](https://img.shields.io/github/license/maxmahem/share_map)
 [![dependency status](https://deps.rs/repo/github/maxmahem/share_map/status.svg)](https://deps.rs/repo/github/maxmahem/share_map)
@@ -8,7 +8,7 @@
 
 `ShareMap` is a **configurable, thread-safe, immutable map** of values that supports shared read access and provides access to stable, sharable value references to its owned values (`Handle`s).
 
-It is designed for scenarios with **frequent reads** and **occasional bulk updates**, such as configuration reloading, caching, or periodically rebuilt lookup tables. Where data needs to be queried on one thread while values are handled on another. `Handle`s provide persistent access to owned data, so the `ShareMap` can be dropped or replaced without affecting current readers who will continue to see the previous value.
+It is designed for scenarios with **frequent reads** and **occasional bulk updates**, such as configuration reloading, caching, or periodically rebuilt lookup tables where data needs to be queried on one thread while values are handled on another. `Handle`s provide persistent access to owned data, so the `ShareMap` can be dropped or replaced without affecting current readers who will continue to see the previous value.
 
 ## Features
 
