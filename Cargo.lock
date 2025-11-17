@@ -10,10 +10,13 @@ checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
 
 [[package]]
 name = "collect_failable"
-version = "0.3.0"
-source = "git+https://github.com/MaxMahem/collect_failable.git#b92f69817fb7856068417f75aa170cfdeea8eaeb"
+version = "0.7.2"
+source = "git+https://github.com/MaxMahem/collect_failable.git#14c29df0c9954e4ed401ee3e4e599bdc798071e6"
 dependencies = [
  "derive_more",
+ "fluent_result",
+ "size_guess",
+ "tap",
  "thiserror",
 ]
 
@@ -327,6 +330,11 @@ dependencies = [
  "tap",
  "thiserror",
 ]
+
+[[package]]
+name = "size_guess"
+version = "0.1.0"
+source = "git+https://github.com/MaxMahem/size_guess.git#e9290889a2d9a13be5979a3f76db7ef8f1dcf6c2"
 
 [[package]]
 name = "syn"
