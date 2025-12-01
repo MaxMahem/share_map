@@ -163,8 +163,12 @@ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 
 [[package]]
 name = "fluent_result"
-version = "0.6.3"
-source = "git+https://github.com/MaxMahem/fluent_result.git#a125e96e2ea655d62defe59d569a4d02f9a40ca1"
+version = "0.8.0"
+source = "git+https://github.com/MaxMahem/fluent_result.git#3f0e7de9aae593d6a5291c5ac332a1968648f504"
+dependencies = [
+ "derive_more",
+ "sealed",
+]
 
 [[package]]
 name = "foldhash"
@@ -624,6 +628,17 @@ name = "scopeguard"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
+
+[[package]]
+name = "sealed"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "22f968c5ea23d555e670b449c1c5e7b2fc399fdaec1d304a17cd48e288abc107"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
 
 [[package]]
 name = "serde"
