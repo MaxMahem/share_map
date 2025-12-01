@@ -31,8 +31,8 @@ checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
 
 [[package]]
 name = "collect_failable"
-version = "0.9.0"
-source = "git+https://github.com/MaxMahem/collect_failable.git#4228a1cf41c57765fa756d5380734ed344c8f9ed"
+version = "0.10.0"
+source = "git+https://github.com/MaxMahem/collect_failable.git#9d39658220931f74e3d4935540938af0a0cfe274"
 dependencies = [
  "derive_more",
  "fluent_result",
@@ -163,8 +163,12 @@ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 
 [[package]]
 name = "fluent_result"
-version = "0.6.3"
-source = "git+https://github.com/MaxMahem/fluent_result.git#a125e96e2ea655d62defe59d569a4d02f9a40ca1"
+version = "0.8.0"
+source = "git+https://github.com/MaxMahem/fluent_result.git#3f0e7de9aae593d6a5291c5ac332a1968648f504"
+dependencies = [
+ "derive_more",
+ "sealed",
+]
 
 [[package]]
 name = "foldhash"
@@ -626,6 +630,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
 
 [[package]]
+name = "sealed"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "22f968c5ea23d555e670b449c1c5e7b2fc399fdaec1d304a17cd48e288abc107"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "serde"
 version = "1.0.228"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -684,7 +699,7 @@ dependencies = [
 [[package]]
 name = "size_guess"
 version = "0.1.0"
-source = "git+https://github.com/MaxMahem/size_guess.git#e9290889a2d9a13be5979a3f76db7ef8f1dcf6c2"
+source = "git+https://github.com/MaxMahem/size_guess.git#60cd2bf1aaa629c52d5c23eaec3b3f36b87092a1"
 
 [[package]]
 name = "smallvec"
