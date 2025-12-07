@@ -64,3 +64,11 @@ fn deserialize_ensure_unqiue_wrong_type_uses_expecting() {
     let err = serde_json::from_str::<TestContainer>(data).expect_err("should Err");
     assert!(err.to_string().contains("a map with unique keys"));
 }
+
+#[test]
+fn deserialize_ensure_unqiue_malformed_entry_errors() {    
+    // Map expects String keys, but we provide a number as a key
+    let data = r#"{"map": {123: "value"}}"#;
+    let err = serde_json::from_str::<TestContainer>(data).expect_err("should Err");
+    assert!(err.is_syntax());
+}
