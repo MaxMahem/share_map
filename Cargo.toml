@@ -23,6 +23,11 @@ collect_failable = { git = "https://github.com/MaxMahem/collect_failable.git" }
 thiserror = "2.0.17"
 serde = { version = "1.0.228", optional = true }
 
+[[test]]
+name = "serde"
+path = "tests/serde.rs"
+required-features = ["serde"]
+
 [dev-dependencies]
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.145"

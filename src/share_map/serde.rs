@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use crate::{Len, MapIteration, ShareMap};
 
 impl<'de, K, V, Map> serde::Deserialize<'de> for ShareMap<K, V, Map>
@@ -10,7 +12,7 @@ where
     where
         D: serde::Deserializer<'de>,
     {
-        std::collections::HashMap::deserialize(deserializer).map(ShareMap::from)
+        HashMap::deserialize(deserializer).map(ShareMap::from)
     }
 }
 
