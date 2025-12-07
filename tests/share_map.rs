@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use collect_failable::TryCollectEx;
 
-use crate::ShareMap;
+use share_map::ShareMap;
 
 static TEST_DATA: [(&str, u8); 5] = [
     ("key1", 1),
@@ -29,9 +29,9 @@ fn default_is_empty() {
     assert!(map.is_empty(), "should be empty");
 }
 
-// Test against BTreeMap for reliability because HashMap does not guarantee iteration order
 #[test]
 fn debug_matches_btreemap() {
+    // Test against BTreeMap for reliability because HashMap does not guarantee iteration order
     let btree_map = BTreeMap::from(TEST_DATA);
     let swap_map: ShareMap<_, _, BTreeMap<_, _>> = btree_map.clone().into_iter().collect();
 
@@ -265,41 +265,45 @@ fn map_into_iter_borrowed() {
     assert_eq!(borrowed_vec, frozen_vec);
 }
 
-#[test]
-fn serde_roundtrip() {
-    let map = ShareMap::<_, _>::try_from_iter(TEST_DATA).expect("should be ok");
+#[cfg(feature = "serde")]
+mod serde_tests {
+    use super::*;
+    use share_map::ensure_unqiue;
 
-    let serialized = serde_json::to_string(&map).expect("should be ok");
-    let deserialized: ShareMap<&str, u8> = serde_json::from_str(&serialized).expect("should be ok");
+    #[test]
+    fn serde_roundtrip() {
+        let map = ShareMap::<_, _>::try_from_iter(TEST_DATA).expect("should be ok");
 
-    assert_eq!(map, deserialized);
-}
+        let serialized = serde_json::to_string(&map).expect("should be ok");
+        let deserialized: ShareMap<&str, u8> = serde_json::from_str(&serialized).expect("should be ok");
 
-use crate::ensure_unqiue;
+        assert_eq!(map, deserialized);
+    }
 
-#[derive(Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-struct TestContainer {
-    #[serde(with = "ensure_unqiue")]
-    map: ShareMap<String, u8>,
-}
+    #[derive(Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+    struct TestContainer {
+        #[serde(with = "ensure_unqiue")]
+        map: ShareMap<String, u8>,
+    }
 
-#[test]
-fn deserialize_ensure_unqiue_duplicate_keys_errors() {
-    let data = r#"{"map": {"key1": 1, "key2": 2, "key1": 3}}"#;
+    #[test]
+    fn deserialize_ensure_unqiue_duplicate_keys_errors() {
+        let data = r#"{"map": {"key1": 1, "key2": 2, "key1": 3}}"#;
 
-    let err = serde_json::from_str::<TestContainer>(data).expect_err("should Err");
+        let err = serde_json::from_str::<TestContainer>(data).expect_err("should Err");
 
-    assert!(err.is_data());
-}
+        assert!(err.is_data());
+    }
 
-#[test]
-fn serde_ensured_unique_roundtrip() {
-    let test_data = TEST_DATA.into_iter().map(|(k, v)| (k.to_string(), v));
-    let map = ShareMap::<String, _>::try_from_iter(test_data).expect("should be ok");
-    let test_container = TestContainer { map };
+    #[test]
+    fn serde_ensured_unique_roundtrip() {
+        let test_data = TEST_DATA.into_iter().map(|(k, v)| (k.to_string(), v));
+        let map = ShareMap::<String, _>::try_from_iter(test_data).expect("should be ok");
+        let test_container = TestContainer { map };
 
-    let serialized = serde_json::to_string(&test_container).expect("should be ok");
-    let deserialized: TestContainer = serde_json::from_str(&serialized).expect("should be ok");
+        let serialized = serde_json::to_string(&test_container).expect("should be ok");
+        let deserialized: TestContainer = serde_json::from_str(&serialized).expect("should be ok");
 
-    assert_eq!(test_container, deserialized);
+        assert_eq!(test_container, deserialized);
+    }
 }

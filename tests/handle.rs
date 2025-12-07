@@ -2,7 +2,7 @@ use std::borrow::Borrow;
 use std::error::Error;
 use std::hash::BuildHasher;
 
-use crate::{Handle, ShareMap};
+use share_map::{Handle, ShareMap};
 
 #[test]
 fn deref_matches_value() {
@@ -225,17 +225,22 @@ fn partial_cmp_matches_value() {
     );
 }
 
-#[test]
-fn deserialize_matches_value_deserialize() {
-    let value = 42.0;
+#[cfg(feature = "serde")]
+mod serde_tests {
+    use super::*;
 
-    let handle = ShareMap::<_, _>::try_from_iter([("key1", value)])
-        .expect("should be Ok")
-        .get_handle("key1")
-        .expect("should be Some");
+    #[test]
+    fn deserialize_matches_value_deserialize() {
+        let value = 42.0;
 
-    let handle_serialized = serde_json::to_string(&handle).expect("should be Ok");
-    let value_serialized = serde_json::to_string(&value).expect("should be Ok");
+        let handle = ShareMap::<_, _>::try_from_iter([("key1", value)])
+            .expect("should be Ok")
+            .get_handle("key1")
+            .expect("should be Some");
 
-    assert_eq!(handle_serialized, value_serialized);
+        let handle_serialized = serde_json::to_string(&handle).expect("should be Ok");
+        let value_serialized = serde_json::to_string(&value).expect("should be Ok");
+
+        assert_eq!(handle_serialized, value_serialized);
+    }
 }

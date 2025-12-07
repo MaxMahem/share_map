@@ -3,8 +3,6 @@ mod iter;
 mod serde;
 #[allow(clippy::module_inception)]
 mod share_map;
-#[cfg(test)]
-mod tests;
 
 pub use iter::Iter;
 #[cfg(feature = "serde")]
