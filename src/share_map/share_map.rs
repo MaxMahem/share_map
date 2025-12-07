@@ -7,7 +7,7 @@ use std::sync::Arc;
 #[cfg(doc)]
 use collect_failable::TryCollectEx;
 use collect_failable::TryFromIterator;
-use fluent_result::IntoResult;
+use fluent_result::into::IntoResult;
 use frozen_collections::{Len, MapIteration, MapQuery};
 
 use crate::Handle;
