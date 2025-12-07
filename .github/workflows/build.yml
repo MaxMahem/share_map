@@ -1,13 +1,26 @@
-name: CI # Continuous Integration
+name: Build # Continuous Integration
 
 on:
+  workflow_dispatch:
   push:
-    branches:
-      - main
+    branches: [ "master", "main" ]
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "examples/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "build.rs"
   pull_request:
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "examples/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "build.rs"
 
 jobs:
-
   test:
     name: Test Suite
     runs-on: ubuntu-latest
