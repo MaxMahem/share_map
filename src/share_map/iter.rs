@@ -3,7 +3,7 @@ use std::iter::FusedIterator;
 #[cfg(doc)]
 use crate::ShareMap;
 
-/// A borrowed iterator over the key-value pairs in a [ShareMap].
+/// A borrowed iterator over the key-value pairs in a [`ShareMap`].
 ///
 /// Order of iteration is dependent on the underlying map implementation.
 ///
@@ -95,7 +95,7 @@ mod tests {
         let map = ShareMap::<_, _>::try_from_iter([(15, 42), (23, 100)]).expect("should be ok");
         let iter = map.iter();
 
-        let debug = format!("{:?}", iter);
+        let debug = format!("{iter:?}");
 
         assert_eq!(debug, "Iter { .. }");
     }

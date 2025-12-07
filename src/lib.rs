@@ -1,4 +1,8 @@
 #![doc = include_str!("../README.md")]
+#![warn(clippy::pedantic)]
+#![warn(clippy::cargo)]
+#![allow(clippy::match_bool)]
+#![allow(clippy::multiple_crate_versions)]
 
 mod handle;
 mod share_map;

@@ -51,8 +51,8 @@ fn debug_matches_value() {
         .get_handle("key1")
         .expect("should be Some");
 
-    let handle_debug = format!("{:?}", handle);
-    let value_debug = format!("{:?}", value);
+    let handle_debug = format!("{handle:?}");
+    let value_debug = format!("{value:?}");
 
     assert_eq!(handle_debug, value_debug);
 }
@@ -66,8 +66,8 @@ fn display_matches_value() {
         .get_handle("key1")
         .expect("should be Some");
 
-    let handle_display = format!("{}", handle);
-    let value_display = format!("{}", value);
+    let handle_display = format!("{handle}");
+    let value_display = format!("{value}");
 
     assert_eq!(handle_display, value_display);
 }

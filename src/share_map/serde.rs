@@ -71,6 +71,11 @@ pub mod ensure_unqiue {
     use crate::{Len, ShareMap};
 
     /// Serializes the map. This method simply passes through to [`ShareMap::serialize`].
+    ///
+    /// # Errors
+    ///
+    /// Any errors from [`ShareMap::serialize`] are passed through.
+    #[inline]
     pub fn serialize<S, K, V, Map>(
         value: &ShareMap<K, V, Map>,
         serializer: S,

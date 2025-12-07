@@ -23,23 +23,22 @@ static DUPLICATE_DATA: [(&str, u8); 6] = [
 ];
 
 #[test]
-fn default_is_empty() -> Result<(), Box<dyn std::error::Error>> {
-    let map: ShareMap<u8, ()> = Default::default();
-    assert_eq!(map.len(), 0);
-    assert!(map.is_empty());
-    Ok(())
+fn default_is_empty() {
+    let map: ShareMap<u8, ()> = ShareMap::default();
+    assert_eq!(map.len(), 0, "should be empty");
+    assert!(map.is_empty(), "should be empty");
 }
 
-/// Test against BTreeMap for reliability because HashMap does not guarantee iteration order
+// Test against BTreeMap for reliability because HashMap does not guarantee iteration order
 #[test]
 fn debug_matches_btreemap() {
     let btree_map = BTreeMap::from(TEST_DATA);
     let swap_map: ShareMap<_, _, BTreeMap<_, _>> = btree_map.clone().into_iter().collect();
 
-    let swap_debug = format!("{:?}", swap_map);
-    let btree_debug = format!("{:?}", btree_map);
+    let swap_debug = format!("{swap_map:?}");
+    let btree_debug = format!("{btree_map:?}");
 
-    assert_eq!(swap_debug, btree_debug);
+    assert_eq!(swap_debug, btree_debug, "should be equal");
 }
 
 #[test]
@@ -168,7 +167,7 @@ fn contains_key_invalid_key_returns_false() {
 }
 
 #[test]
-#[should_panic]
+#[should_panic(expected = "no entry found for key")]
 fn index_invalid_key_panics() {
     let map = ShareMap::<_, _>::try_from_iter(TEST_DATA).expect("should be ok");
 

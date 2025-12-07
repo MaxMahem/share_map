@@ -469,11 +469,12 @@ where
     }
 }
 
-impl<K, V, Map> From<ShareMap<K, V, Map>> for HashMap<K, V>
+impl<K, V, Map, S> From<ShareMap<K, V, Map>> for HashMap<K, V, S>
 where
     K: Eq + std::hash::Hash + Clone,
     V: Clone,
     Map: MapIteration<K, usize>,
+    S: std::hash::BuildHasher + Default,
 {
     fn from(value: ShareMap<K, V, Map>) -> Self {
         value

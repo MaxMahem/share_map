@@ -45,6 +45,8 @@ impl<T> Handle<T> {
     /// # }
     /// ```
     #[allow(clippy::should_implement_trait)] // we do implement Eq
+    #[must_use]
+    #[inline]
     pub fn eq(this: &Handle<T>, other: &Handle<T>) -> bool
     where
         T: Eq,
@@ -71,6 +73,8 @@ impl<T> Handle<T> {
     /// # Ok(())
     /// # }
     /// ```
+    #[must_use]
+    #[inline]
     pub fn ne(this: &Handle<T>, other: &Handle<T>) -> bool
     where
         T: Eq,
@@ -102,15 +106,19 @@ impl<T> Handle<T> {
     /// # Ok(())
     /// # }
     /// ```
+    #[must_use]
+    #[inline]
     pub fn ref_eq(this: &Self, other: &Self) -> bool {
-        std::ptr::eq(&**this, &**other)
+        std::ptr::eq(&raw const **this, &raw const **other)
     }
 
     /// Returns `true` if the two [`Handle`]s reference different value instances.
     ///
     /// See also [`Handle::ref_eq`].
+    #[must_use]
+    #[inline]
     pub fn ref_ne(this: &Handle<T>, other: &Handle<T>) -> bool {
-        !std::ptr::eq(&**this, &**other)
+        !std::ptr::eq(&raw const **this, &raw const **other)
     }
 }
 
@@ -159,7 +167,7 @@ impl<T: Error> Error for Handle<T> {
 
 impl<T: Hash> Hash for Handle<T> {
     fn hash<H: Hasher>(&self, state: &mut H) {
-        (**self).hash(state)
+        (**self).hash(state);
     }
 }
 
@@ -194,7 +202,7 @@ impl<T: PartialEq> PartialEq for Handle<T> {
     }
 }
 
-/// If `T` implements [PartialOrd], [`Handle`] implements comparison based on the derefed value.
+/// If `T` implements [`PartialOrd`], [`Handle`] implements comparison based on the derefed value.
 impl<T: PartialOrd> PartialOrd for Handle<T> {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         (**self).partial_cmp(&**other)
@@ -208,7 +216,7 @@ impl<T: Ord> Ord for Handle<T> {
     }
 }
 
-/// If `T` implements [serde::Serialize], [`Handle`] implements [`serde::Serialize`] by delegating to
+/// If `T` implements [`serde::Serialize`], [`Handle`] implements [`serde::Serialize`] by delegating to
 /// the derefed value. Deserialization is not supported.
 #[cfg(feature = "serde")]
 impl<T: serde::Serialize> serde::Serialize for Handle<T> {

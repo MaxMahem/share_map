@@ -1,4 +1,4 @@
-# ShareMap
+# `ShareMap`
 
 [![Build](https://github.com/MaxMahem/share_map/actions/workflows/build.yml/badge.svg)](https://github.com/MaxMahem/share_map/actions/workflows/build.yml)
 [![Docs](https://github.com/MaxMahem/share_map/actions/workflows/docs.yml/badge.svg)](https://maxmahem.github.io/share_map/share_map/index.html)
