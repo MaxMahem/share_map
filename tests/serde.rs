@@ -1,6 +1,6 @@
 #![cfg(feature = "serde")]
 
-use share_map::{ensure_unqiue, ShareMap};
+use share_map::{ShareMap, ensure_unqiue};
 
 static TEST_DATA: [(&str, u8); 5] = [
     ("key1", 1),
@@ -66,7 +66,7 @@ fn deserialize_ensure_unqiue_wrong_type_uses_expecting() {
 }
 
 #[test]
-fn deserialize_ensure_unqiue_malformed_entry_errors() {    
+fn deserialize_ensure_unqiue_malformed_entry_errors() {
     // Map expects String keys, but we provide a number as a key
     let data = r#"{"map": {123: "value"}}"#;
     let err = serde_json::from_str::<TestContainer>(data).expect_err("should Err");
