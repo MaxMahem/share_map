@@ -701,7 +701,7 @@ dependencies = [
 
 [[package]]
 name = "share_map"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "collect_failable",
  "fluent_result",
