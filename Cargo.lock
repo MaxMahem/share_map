@@ -32,11 +32,12 @@ checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
 [[package]]
 name = "collect_failable"
 version = "0.11.1"
-source = "git+https://github.com/MaxMahem/collect_failable.git#677eeb9bb2153d60f2938c7d862e1b3a253a5183"
+source = "git+https://github.com/MaxMahem/collect_failable.git#af2b522dbd1b8275ab47439d7f0ede820fa00e3d"
 dependencies = [
  "derive_more",
  "fluent_result",
  "include-doc",
+ "sealed",
  "size_guess",
  "tap",
  "thiserror",
@@ -164,8 +165,8 @@ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 
 [[package]]
 name = "fluent_result"
-version = "0.8.3"
-source = "git+https://github.com/MaxMahem/fluent_result.git#353993d6ce7fcb184cc58bd2d242ca7a6b80d8b8"
+version = "0.9.0"
+source = "git+https://github.com/MaxMahem/fluent_result.git#2408193ac243e4028cf6530b0c7daeb637e4cd8b"
 dependencies = [
  "derive_more",
  "sealed",
