@@ -31,13 +31,17 @@ checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
 
 [[package]]
 name = "collect_failable"
-version = "0.11.1"
-source = "git+https://github.com/MaxMahem/collect_failable.git#677eeb9bb2153d60f2938c7d862e1b3a253a5183"
+version = "0.12.3"
+source = "git+https://github.com/MaxMahem/collect_failable.git#5a4c7ac394e3c25ef6a5d18b7860128cb99ae999"
 dependencies = [
  "derive_more",
- "fluent_result",
+ "display_as_debug",
+ "fluent_result 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "include-doc",
- "size_guess",
+ "itertools 0.14.0",
+ "no_drop",
+ "sealed",
+ "subdef",
  "tap",
  "thiserror",
 ]
@@ -145,6 +149,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "display_as_debug"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "86133a5deb2398636d0901ce53a0dc6ec383bce76bbefc4de29339fbb4ebe564"
+
+[[package]]
 name = "drop_bomb"
 version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -164,8 +174,18 @@ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 
 [[package]]
 name = "fluent_result"
-version = "0.8.3"
-source = "git+https://github.com/MaxMahem/fluent_result.git#353993d6ce7fcb184cc58bd2d242ca7a6b80d8b8"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "28cf51bd8910d54daa3519d977e64efec6559ad5543376365e9ed17fb47a73a0"
+dependencies = [
+ "derive_more",
+ "sealed",
+]
+
+[[package]]
+name = "fluent_result"
+version = "0.9.0"
+source = "git+https://github.com/MaxMahem/fluent_result.git#7f220ec4a052f4ad92e35b244d58649937413b88"
 dependencies = [
  "derive_more",
  "sealed",
@@ -312,6 +332,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "itertools"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2b192c782037fadd9cfa75548310488aabdbf3d2da73885b31bd0abd03351285"
+dependencies = [
+ "either",
+]
+
+[[package]]
 name = "itoa"
 version = "1.0.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -379,6 +408,17 @@ name = "mutants"
 version = "0.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bc0287524726960e07b119cebd01678f852f147742ae0d925e6a520dca956126"
+
+[[package]]
+name = "no_drop"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d829f7facb901fc17b998c9469855e4aad9efa3bc82ac75278120a80fc517853"
+dependencies = [
+ "derive_more",
+ "sealed",
+ "thiserror",
+]
 
 [[package]]
 name = "once_cell"
@@ -704,18 +744,13 @@ name = "share_map"
 version = "0.1.2"
 dependencies = [
  "collect_failable",
- "fluent_result",
+ "fluent_result 0.9.0 (git+https://github.com/MaxMahem/fluent_result.git)",
  "frozen-collections",
  "serde",
  "serde_json",
  "tap",
  "thiserror",
 ]
-
-[[package]]
-name = "size_guess"
-version = "0.1.0"
-source = "git+https://github.com/MaxMahem/size_guess.git#60cd2bf1aaa629c52d5c23eaec3b3f36b87092a1"
 
 [[package]]
 name = "smallvec"
@@ -730,6 +765,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "dd538fb6910ac1099850255cf94a94df6551fbdd602454387d0adb2d1ca6dead"
 dependencies = [
  "serde",
+]
+
+[[package]]
+name = "subdef"
+version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b1b129909a0e58e1eb7f4e16318e3a4db537325f7dc3fcd0ee7c47f62c82ff80"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
 ]
 
 [[package]]
